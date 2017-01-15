@@ -10,6 +10,7 @@ class SigmoidNeuron:
     ):
         self.id = random.getrandbits(128)
         self.output = None
+        self.incomingVoltage = np.zeros(1, amountOfNeurons)
         if(cloneFrom is None):
             self.amountOfNeurons = amountOfNeurons
             self.sigmoidConstantMax = sigmoidConstantMax
@@ -18,7 +19,7 @@ class SigmoidNeuron:
             self.biasMutationRate = biasMutationRate
             self.biasMax = biasMax
             self.biasMin = biasMin
-            self.sigmoidConstantVect = \
+            self.sigmoidConstants = \
                 np.random.uniform(
                     self.sigmoidConstantMin, self.sigmoidConstantMax,
                     [1, self.amountOfNeurons]
@@ -37,14 +38,35 @@ class SigmoidNeuron:
             self.biasMutationRate = cloneFrom.biasMutationRate
             self.biasMax = cloneFrom.biasMax
             self.biasMin = cloneFrom.biasMin
-            self.sigmoidConstantVect = cloneFrom.sigmoidConstantVect.copy()
+            self.sigmoidConstants = cloneFrom.sigmoidConstants.copy()
             self.bias = cloneFrom.bias.copy()
 
     def MightMutate(self):
-        pass
+        mask_sigmoid = 1 - np.random.binomial(
+            1, self.sigmoidConstantMutationRate,
+            [1, self.amountOfNeurons]
+        )
+        mask_bias = 1 - np.random.binomial(
+            1, self.biasMutationRate,
+            [1, self.amountOfNeurons]
+        )
+        randomSigmoidConstants = np.random.uniform(
+            self.sigmoidConstantMin, self.sigmoidConstantMax,
+            [1, self.amountOfNeurons]
+        )
+        randomBias = np.random.uniform(
+            self.biasMin, self.biasMax,
+            [1, self.amountOfNeurons]
+        )
+        self.sigmoidConstants = self.sigmoidConstants * mask_sigmoid
+        + randomSigmoidConstants * (1 - mask_sigmoid)
+        self.bias = self.bias * mask_bias + randomBias * (1 - mask_bias)
 
     def Spread(self):
-        pass
+        self.output = np.sigmoid(
+            self.incomingVoltage *
+            self.sigmoidConstants + self.bias
+        )
 
     def TopologyMutate(self):
         pass
@@ -52,5 +74,8 @@ class SigmoidNeuron:
     def GetOutput(self):
         return self.output
 
+    def resetIncomingVoltage(self):
+        self.incomingVoltage = np.zeros(self.incomingVoltage.shape)
+
     def SumIncomingVoltage(self, incomingVoltage):
-        pass
+        self.incomingVoltage += incomingVoltage
