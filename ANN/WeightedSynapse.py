@@ -1,5 +1,4 @@
 import numpy as np
-import copy
 import random
 
 
@@ -8,7 +7,7 @@ class WeightedSynapse:
             self, minWeight=-1.0, maxWeight=1.0, changeWeightRate=0.1,
             connectivityRate=0.8, cloneFrom=None,
             randomTopologyMutationRate=0.5
-            ):
+    ):
         self.id = random.getrandbits(128)
         self.connected = False
         self.output = None
@@ -27,21 +26,24 @@ class WeightedSynapse:
             self.minWeight = cloneFrom.minWeight
             self.maxWeight = cloneFrom.maxWeight
             self.changeWeightRate = cloneFrom.changeWeightRate
-            self.weights = copy.deepcopy(cloneFrom.weights)
+            self.weights = cloneFrom.weights.copy()
             self.randomTopologyMutationRate = \
                 cloneFrom.randomTopologyMutationRate
             self.connectivityMask = cloneFrom.connectivityMask
 
-
     def MightMutate(self):
-        large = self.weights.shape[0]
+        preNeuronLarge = self.preNeuronGroup.NeuronAmount()
+        postNeuronLarge = self.postNeuronGroup.NeuronAmount()
         randomWeights = np.random.uniform(
-            self.minWeight, self.maxWeight, large)
-        mask = 1-np.random.binomial(1, self.changeWeightRate, large)
-        self.weights = self.weights * mask + randomWeights * (1-mask)
+            self.minWeight, self.maxWeight, [preNeuronLarge, postNeuronLarge]
+        )
+        mask = 1 - np.random.binomial(
+            1, self.changeWeightRate, [preNeuronLarge, postNeuronLarge]
+        )
+        self.weights = self.weights * mask + randomWeights * (1 - mask)
         self.weights = self.weights * self.connectivityMask
 
-    def Connect(preNeuronGroup=None,
+    def Connect(self, preNeuronGroup=None,
                 postNeuronGroup=None, createNewWeights=True):
         # Connect preNeuronGroup with postNeuronGroup, but some wights have to
         # be 0, connectivityMask have 1 in the weights that can be different
@@ -52,20 +54,18 @@ class WeightedSynapse:
         preNeuronLarge = self.preNeuronGroup.NeuronAmount()
         postNeuronLarge = self.postNeuronGroup.NeuronAmount()
         if(createNewWeights):
-            self.weights = np.random.rand(
-                preNeuronLarge,
-                postNeuronLarge
-                ) * (self.maxWeight - self.minWeight) + self.minWeight
-            self.connectivityMask = 1-np.random.binomial(
+            self.weights = np.random.uniform(
+                self.minWeight, self.maxWeight,
+                [preNeuronLarge, postNeuronLarge]
+            )
+            self.connectivityMask = 1 - np.random.binomial(
                 1, self.connectivityRate,
                 [preNeuronLarge, postNeuronLarge]
-                )
+            )
             self.weights = self.weights * self.connectivityMask
-
 
     def Clone(self):
         return WeightedSynapse(cloneFrom=self)
-
 
     def Spread(self):
         assert (self.connected), "ERROR::WeightedSynapse::Clone::WeightedS"\
@@ -73,21 +73,21 @@ class WeightedSynapse:
         self.output = np.matmul(self.preNeuronGroup.GetOutputVector(),
                                 self.weights)
 
-
     def GetOutput(self):
         return self.output
 
-
     def TopologyMutation(self):
         randomTopology = random.rand() < self.randomTopologyMutationRate
-        addConnectivity = random.rand() < addConnectivityRate
-        removeConnectivity = random.rand() < removeConnectivityRate
+        addConnectivity = random.rand() < self.addConnectivityRate
+        removeConnectivity = random.rand() < self.removeConnectivityRate
+        preNeuronLarge = self.preNeuronGroup.NeuronAmount()
+        postNeuronLarge = self.postNeuronGroup.NeuronAmount()
 
-        if (randomTopology or not (removeConnectivity or addConnectivity ) ):
-            self.connectivityMask = 1-np.random.binomial(
+        if (randomTopology or not (removeConnectivity or addConnectivity)):
+            self.connectivityMask = 1 - np.random.binomial(
                 1, self.connectivityRate,
                 [preNeuronLarge, postNeuronLarge]
-                )
+            )
         elif(addConnectivity):
             pass
         elif(removeConnectivity):
