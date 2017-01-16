@@ -63,6 +63,8 @@ class WeightedSynapse:
                 [preNeuronLarge, postNeuronLarge]
             )
             self.weights = self.weights * self.connectivityMask
+        self.preNeuronGroup.AddPreSynapse(self)
+        self.postNeuronGroup.AddPostSynapse(self)
 
     def Clone(self):
         return WeightedSynapse(cloneFrom=self)
