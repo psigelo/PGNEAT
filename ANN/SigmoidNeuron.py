@@ -8,6 +8,9 @@ class SigmoidNeuron:
             sigmoidConstantMax=5.2, biasMin=0.0, biasMax=0.0, cloneFrom=None,
             sigmoidConstantMutationRate=0.2, biasMutationRate=0.2
     ):
+        self.preSynapseAmount = 0
+        self.postSynapseAmount = 0
+        self.preSynapse = dict()
         self.id = random.getrandbits(128)
         self.output = None
         self.incomingVoltage = np.zeros(1, amountOfNeurons)
@@ -79,3 +82,11 @@ class SigmoidNeuron:
 
     def SumIncomingVoltage(self, incomingVoltage):
         self.incomingVoltage += incomingVoltage
+
+    def AddPreSynapse(self, preSynapse):
+        self.preSynapse.update({self.preSynapseAmount, preSynapse})
+        self.preSynapseAmount += 1
+
+    def AddPostSynapse(self, postSynapse):
+        self.postSynapse.update({self.postSynapseAmount, postSynapse})
+        self.postSynapseAmount += 1
