@@ -44,7 +44,7 @@ class WeightedSynapse:
         self.weights = self.weights * self.connectivityMask
 
     def Connect(self, preNeuronGroup=None,
-                postNeuronGroup=None, createNewWeights=True):
+                postNeuronGroup=None, createNewWeights=False):
         # Connect preNeuronGroup with postNeuronGroup, but some wights have to
         # be 0, connectivityMask have 1 in the weights that can be different
         # than 0, and is 0 where is none a connection.
@@ -63,8 +63,8 @@ class WeightedSynapse:
                 [preNeuronLarge, postNeuronLarge]
             )
             self.weights = self.weights * self.connectivityMask
-        self.preNeuronGroup.AddPreSynapse(self)
-        self.postNeuronGroup.AddPostSynapse(self)
+        self.preNeuronGroup.AddPostSynapse(self)
+        self.postNeuronGroup.AddPreSynapse(self)
 
     def Clone(self):
         return WeightedSynapse(cloneFrom=self)
